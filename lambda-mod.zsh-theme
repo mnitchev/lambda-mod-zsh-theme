@@ -3,20 +3,34 @@
 local LAMBDA="%(?,%{$fg_bold[green]%}λ,%{$fg_bold[red]%}λ)"
 if [[ "$USER" == "root" ]]; then USERCOLOR="red"; else USERCOLOR="yellow"; fi
 
+function precmd_pipestatus() {
+    local exit_status="${(j.|.)pipestatus}"
+    local statuses="$(echo $exit_status | sed 's/|/ /g')"
+    setopt shwordsplit
+    for pipe_status in $statuses; do
+        if [[ $pipe_status != 0 ]]; then
+            echo -n "%{$fg_bold[red]%}${exit_status}"' '
+        fi
+    done
+    unsetopt shwordsplit
+    return 0
+}
+
 # Git sometimes goes into a detached head state. git_prompt_info doesn't
 # return anything in this case. So wrap it in another function and check
 # for an empty string.
 function check_git_prompt_info() {
+    exit_status="$(precmd_pipestatus)"
     if type git &>/dev/null && git rev-parse --git-dir > /dev/null 2>&1; then
         if [[ -z $(git_prompt_info 2> /dev/null) ]]; then
             echo "%{$fg[blue]%}detached-head%{$reset_color%}) $(git_prompt_status)
-%{$fg[yellow]%}→ "
+%{$fg[yellow]%}${exit_status}➜ "
         else
             echo "$(git_prompt_info 2> /dev/null) $(git_prompt_status)
-%{$fg_bold[cyan]%}→ "
+%{$fg_bold[cyan]%}${exit_status}➜ "
         fi
     else
-        echo "%{$fg_bold[cyan]%}→ "
+        echo "%{$fg_bold[cyan]%}${exit_status}➜ "
     fi
 }
 
@@ -30,7 +44,7 @@ function get_right_prompt() {
 
 PROMPT=$'\n'$LAMBDA'\
  %{$fg_bold[$USERCOLOR]%}%n\
- %{$fg_no_bold[magenta]%}[%'${LAMBDA_MOD_N_DIR_LEVELS:-3}'~]\
+ %{$fg_no_bold[red]%}[%'${LAMBDA_MOD_N_DIR_LEVELS:-3}'~]\
  $(check_git_prompt_info)\
 %{$reset_color%}'
 
