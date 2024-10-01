@@ -22,11 +22,11 @@ function precmd_pipestatus() {
 function check_git_prompt_info() {
     exit_status="$(precmd_pipestatus)"
     if type git &>/dev/null && git rev-parse --git-dir > /dev/null 2>&1; then
-        if [[ -z $(git_prompt_info 2> /dev/null) ]]; then
+        if [[ -z $(_omz_git_prompt_info 2> /dev/null) ]]; then
             echo "%{$fg[blue]%}detached-head%{$reset_color%}) $(git_prompt_status)
 %{$fg[yellow]%}${exit_status}➜ "
         else
-            echo "$(git_prompt_info 2> /dev/null) $(git_prompt_status)
+            echo "$(_omz_git_prompt_info 2> /dev/null) $(git_prompt_status)
 %{$fg_bold[cyan]%}${exit_status}➜ "
         fi
     else
@@ -50,7 +50,7 @@ PROMPT=$'\n'$LAMBDA'\
 
 RPROMPT='$(get_right_prompt)'
 
-# Format for git_prompt_info()
+# Format for _omz_git_prompt_info()
 ZSH_THEME_GIT_PROMPT_PREFIX="at %{$fg[blue]%} "
 ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%}"
 ZSH_THEME_GIT_PROMPT_DIRTY=""
